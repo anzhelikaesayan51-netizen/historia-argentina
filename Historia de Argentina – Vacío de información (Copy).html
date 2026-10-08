@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Historia de Argentina – Vacío de información (Copy)</title>
+<style>
+:root{--bg:#eef6fb;--card:#fff;--tx:#1b2a3a;--ac:#2b8ccf;--ac2:#f2b705;--ok:#2e9e5b;--bad:#d64545;--line:#9cc7e4;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#13202c;--card:#1d2f3f;--tx:#eaf2f8;--line:#3b6b8c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;padding:14px}
+h1{margin:0 0 6px;font-size:1.5rem}
+.c{max-width:1000px;margin:auto}
+.menu{text-align:center;padding-top:30px}
+.menu p{max-width:560px;margin:8px auto}
+.btn{font-size:1.2rem;border:0;border-radius:14px;padding:16px 30px;margin:8px;cursor:pointer;color:#fff;background:var(--ac);font-weight:700}
+.btn.b{background:#e0734a}
+.small{font-size:.9rem;padding:8px 14px;background:#667;border-radius:10px;margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.help{background:var(--card);border-left:6px solid var(--ac2);padding:10px 14px;border-radius:10px;margin:10px 0;font-size:.95rem}
+.tl{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:12px 0;position:relative}
+.slot{background:var(--card);border:3px dashed var(--line);border-radius:14px;min-height:150px;padding:8px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+.slot .y{font-weight:800;font-size:1.25rem;color:var(--ac);margin-bottom:4px}
+.slot.full{border-style:solid;border-color:var(--ok);cursor:pointer}
+.slot.over{background:#dff0ff;border-color:var(--ac)}
+.slot.shake{animation:sh .4s;border-color:var(--bad)}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.em{font-size:2.8rem;line-height:1.1}
+.nm{font-size:.82rem;font-weight:600}
+.tray{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;background:var(--card);padding:12px;border-radius:14px;min-height:110px}
+.tray .card{width:110px;height:100px;background:var(--bg);border:3px solid var(--ac);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;user-select:none}
+.card.sel{outline:4px solid var(--ac2)}
+.card .em{font-size:3rem}
+.q{background:var(--card);padding:10px 14px;border-radius:10px;margin:10px 0}
+.q li{margin:4px 0}
+#info{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;padding:16px;z-index:9}
+#info div{background:var(--card);color:var(--tx);max-width:420px;border-radius:18px;padding:22px;text-align:center}
+#info .em{font-size:4rem}
+#info p{font-size:1.2rem}
+b.v{color:var(--bad)}
+#win{text-align:center;font-size:1.4rem;color:var(--ok);font-weight:800;margin:10px}
+@media(max-width:700px){.tl{grid-template-columns:repeat(2,1fr)}}
+</style></head><body><div class="c" id="app"></div>
+<div id="info" onclick="this.style.display='none'"><div id="ib"></div></div>
+<script>
+const E=[
+{y:1536,e:"⛵",n:"Buenos Aires",t:"Pedro de Mendoza <b class='v'>fundó</b> Buenos Aires."},
+{y:1810,e:"🔔",n:"Revolución de Mayo",t:"Los criollos <b class='v'>formaron</b> el primer gobierno propio."},
+{y:1816,e:"📜",n:"Independencia",t:"Los representantes <b class='v'>declararon</b> la independencia en Tucumán."},
+{y:1817,e:"🏔️",n:"San Martín",t:"San Martín <b class='v'>cruzó</b> los Andes con su ejército."},
+{y:1853,e:"📖",n:"Constitución",t:"Los argentinos <b class='v'>escribieron</b> la primera Constitución."},
+{y:1912,e:"🗳️",n:"Voto secreto",t:"Los hombres <b class='v'>votaron</b> con voto secreto y obligatorio."},
+{y:1947,e:"👩",n:"Voto femenino",t:"El Congreso <b class='v'>aprobó</b> el voto de las mujeres."},
+{y:1982,e:"🏝️",n:"Malvinas",t:"Argentina y el Reino Unido <b class='v'>pelearon</b> por las islas Malvinas."},
+{y:1983,e:"✅",n:"Democracia",t:"Raúl Alfonsín <b class='v'>ganó</b> las elecciones y la democracia <b class='v'>volvió</b>."},
+{y:1986,e:"⚽",n:"Mundial",t:"Argentina <b class='v'>ganó</b> el Mundial de México."}];
+const known={A:[0,2,4,6,8],B:[1,3,5,7,9]};
+let who,placed,sel=null;
+const app=document.getElementById('app');
+function menu(){app.innerHTML=`<div class="menu"><h1>🇦🇷 Historia de Argentina</h1>
+<p>Juego en parejas. Usa el <b>pretérito indefinido</b> (fundó, declaró, ganó…).</p>
+<p>Cada alumno ve 5 acontecimientos y necesita preguntar los otros 5 a su compañero.</p>
+<button class="btn" onclick="start('A')">Alumno A</button><button class="btn b" onclick="start('B')">Alumno B</button></div>`}
+function start(w){who=w;placed=new Set(known[w]);sel=null;draw()}
+function show(i){const x=E[i];document.getElementById('ib').innerHTML=`<div class="em">${x.e}</div><h2>${x.y} – ${x.n}</h2><p>${x.t}</p><small>(toca para cerrar)</small>`;document.getElementById('info').style.display='flex'}
+function draw(){
+const miss=E.map((_,i)=>i).filter(i=>!placed.has(i));
+app.innerHTML=`<div class="top"><h1>Alumno ${who}</h1><button class="btn small" onclick="menu()">⟲ Cambiar alumno</button></div>
+<div class="help"><b>1.</b> Toca una imagen verde ✅ para leer qué pasó y <b>léelo a tu compañero</b>.<br>
+<b>2.</b> Pregunta a tu compañero por las fechas vacías.<br><b>3.</b> Arrastra la imagen a la fecha correcta. (En el móvil: toca la imagen y toca la fecha.)</div>
+<div class="q"><b>Pregunta así:</b><ul><li>¿Qué pasó en <i>1810</i>?</li><li>¿Quién <i>fundó</i> Buenos Aires?</li><li>¿Qué hicieron los argentinos en <i>1853</i>?</li></ul></div>
+<div class="tl" id="tl">${E.map((x,i)=>`<div class="slot ${placed.has(i)?'full':''}" data-i="${i}">
+<div class="y">${x.y}</div>${placed.has(i)?`<div class="em">${x.e}</div><div class="nm">${x.n}</div>`:'<div class="em" style="opacity:.25">❓</div>'}</div>`).join('')}</div>
+${miss.length?`<h3>Imágenes para colocar (${miss.length})</h3><div class="tray">${miss.map(i=>`<div class="card" draggable="true" data-i="${i}"><div class="em">${E[i].e}</div></div>`).join('')}</div>`:'<div id="win">🎉 ¡Muy bien! Completaste la línea de tiempo.</div>'}`;
+document.querySelectorAll('.slot').forEach(s=>{
+const i=+s.dataset.i;
+s.onclick=()=>{if(placed.has(i))show(i);else if(sel!==null)tryPlace(sel,i)};
+s.ondragover=e=>{e.preventDefault();s.classList.add('over')};
+s.ondragleave=()=>s.classList.remove('over');
+s.ondrop=e=>{e.preventDefault();s.classList.remove('over');tryPlace(+e.dataTransfer.getData('text'),i)}});
+document.querySelectorAll('.card').forEach(c=>{
+c.ondragstart=e=>e.dataTransfer.setData('text',c.dataset.i);
+c.onclick=()=>{sel=+c.dataset.i;document.querySelectorAll('.card').forEach(k=>k.classList.remove('sel'));c.classList.add('sel')}})}
+function tryPlace(c,i){
+if(placed.has(i))return;
+if(c===i){placed.add(i);sel=null;draw();show(i)}
+else{const s=document.querySelector(`.slot[data-i="${i}"]`);s.classList.add('shake');setTimeout(()=>s.classList.remove('shake'),450)}}
+menu();
+</script></body></html>
